@@ -8,7 +8,7 @@
 import Foundation
 public typealias CoreDataSetupCompletion = () -> Void
 
-class CoreDataStack {
+public class CoreDataStack {
     private enum State {
         case notRunned, running, started, error
     }
