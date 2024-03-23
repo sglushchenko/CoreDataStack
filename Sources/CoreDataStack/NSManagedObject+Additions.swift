@@ -8,8 +8,14 @@
 import Foundation
 import CoreData
 
-extension NSManagedObject {
-    static func fetch<T: NSManagedObject>(in context: NSManagedObjectContext = .context(), attribute: String? = nil, value: String? = nil, completion: @escaping (_ result: Result<[T], Error>) -> Void) {
+public extension NSManagedObject {
+    static func fetchOne<T: NSManagedObject>(in context: NSManagedObjectContext = .context(), attribute: String? = nil, value: Any? = nil, completion: @escaping (_ item: T?) -> Void) {
+        self.fetch(in: context, attribute: attribute, value: value) { result in
+            completion(try? result.get().first)
+        }
+    }
+    
+    static func fetch<T: NSManagedObject>(in context: NSManagedObjectContext = .context(), attribute: String? = nil, value: Any? = nil, completion: @escaping (_ result: Result<[T], Error>) -> Void) {
         if value != nil && attribute == nil {
             completion(.failure("Attribute cannot be nil if value is not nil"))
             return
@@ -17,7 +23,7 @@ extension NSManagedObject {
         
         var predicate: NSPredicate?
         if let attribute = attribute {
-            if let value = value {
+            if let value = value as? NSObject {
                 predicate = NSPredicate(format: "%@ = %@", attribute, value)
             } else {
                 predicate = NSPredicate(format: "%@ = nil", attribute)
@@ -57,7 +63,7 @@ extension NSManagedObject {
     }
 }
 
-extension NSManagedObject {
+public extension NSManagedObject {
     class func createFetchRequest<T: NSFetchRequestResult>() -> NSFetchRequest<T> {
         return NSFetchRequest<T>(entityName: entityName())
     }
@@ -67,7 +73,7 @@ extension NSManagedObject {
     }
 }
 
-extension NSManagedObject {
+public extension NSManagedObject {
     static func create(in context: NSManagedObjectContext, with block: (_ managedObject: Self) -> Void) -> Self {
         let object = Self.init(context: context)
         block(object)
@@ -80,7 +86,7 @@ extension NSManagedObject {
     }
 }
 
-extension NSManagedObject {
+public extension NSManagedObject {
     func `in`(_ context: NSManagedObjectContext) -> Self? {
         let object = context.object(with: self.objectID)
         return try? context.existingObject(with: object.objectID) as? Self// as? T
